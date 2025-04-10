@@ -2,19 +2,32 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cors from 'cors';
+import dotenv from 'dotenv';
+
+// Carregar variáveis de ambiente
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Configure the API key
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-const genAI = new GoogleGenerativeAI("AIzaSyCqP-ECXVQGdoUAHlPmskxuBIdk_abu-PU");
-
-
+// Create Express app
 const app = express();
+
+// Configurar CORS
+app.use(cors({
+    origin: ['https://chatbot-2zn1.onrender.com', 'http://localhost:3000'],
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type']
+}));
+
 app.use(express.json());
 app.use(express.static(__dirname));
 
-
+// System instruction that defines the chatbot's personality
 const SYSTEM_INSTRUCTION = `Você é um assistente amigável e prestativo chamado GeminiBot. 
 Sua personalidade é:
 - Amigável e acolhedor
@@ -44,7 +57,7 @@ async function generateResponse(prompt) {
     }
 }
 
-
+// Chat endpoint
 app.post('/chat', async (req, res) => {
     try {
         const { message } = req.body;
@@ -55,12 +68,12 @@ app.post('/chat', async (req, res) => {
     }
 });
 
-
+// Serve index.html
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-
+// Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Servidor rodando em http://localhost:${PORT}`);
